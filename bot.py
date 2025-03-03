@@ -1,9 +1,9 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram.constants import ChatAction, ParseMode
 import requests
-import json
 import time
 
 
@@ -12,9 +12,11 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 API_URL = "https://api.deepseek.com/v1/chat/completions"
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_msg = (
@@ -24,6 +26,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Gunakan /help untuk melihat petunjuk penggunaan"
     )
     await update.message.reply_text(welcome_msg, parse_mode=ParseMode.MARKDOWN)
+
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_msg = (
@@ -39,11 +42,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(help_msg, parse_mode=ParseMode.MARKDOWN)
 
+
 def format_response(response):
     """Format respons API menjadi struktur Markdown yang lebih baik"""
-    
     response = response.replace("**", "*").replace("\n- ", "\n• ")
     return f"📚 **Jawaban:**\n\n{response}"
+
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
@@ -81,14 +85,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raw_reply = result['choices'][0]['message']['content']
         formatted_reply = format_response(raw_reply)
         
-        
         iklan = (
             "\n\n---\n"
             "📢 *ADS:*\n"
             "`Ingin tukar rupiah ke dolar atau sebaliknya?` `[Reno Exchange]` *@PT717TT* `untuk kurs terbaik!`"
         )
         formatted_reply += iklan
-        
         
         max_length = 4096
         for i in range(0, len(formatted_reply), max_length):
@@ -113,6 +115,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(error_msg, parse_mode=ParseMode.MARKDOWN)
         logging.error(f"Unexpected error: {e}")
 
+
 if __name__ == '__main__':
     application = Application.builder().token(TOKEN).build()
     
@@ -125,5 +128,6 @@ if __name__ == '__main__':
     
     for handler in handlers:
         application.add_handler(handler)
+    
     
     application.run_polling()
